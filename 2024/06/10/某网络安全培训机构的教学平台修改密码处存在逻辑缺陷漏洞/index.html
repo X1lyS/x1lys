@@ -1,0 +1,700 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="X1ly?S">
+  <meta name="keywords" content="网络安全 渗透测试 web安全">
+  
+    <meta name="description" content="前言：第一次遇到这么奇葩的漏洞，故想记录一下，可惜后面没有危害提升成功，只是一个低危（但其实没有什么危害哈哈，只是很奇葩，打破了我”看上去就做得特别好的网站或者做网安的网站不存在漏洞”的天真认知，哈哈），要是能CSRF绝对高危。因为刚出这个漏洞，厂商还未修复，不得不厚码。但是不影响看思路（其实也没有啥思路可言），目标是一家有些名气的某网络安全培训机构的教学平台  漏洞URLhttps:&#x2F;&#x2F;xxx">
+<meta property="og:type" content="article">
+<meta property="og:title" content="某网络安全培训机构的教学平台修改密码处存在逻辑缺陷漏洞">
+<meta property="og:url" content="https://x1lys.github.io/2024/06/10/%E6%9F%90%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%9F%B9%E8%AE%AD%E6%9C%BA%E6%9E%84%E7%9A%84%E6%95%99%E5%AD%A6%E5%B9%B3%E5%8F%B0%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E5%A4%84%E5%AD%98%E5%9C%A8%E9%80%BB%E8%BE%91%E7%BC%BA%E9%99%B7%E6%BC%8F%E6%B4%9E/index.html">
+<meta property="og:site_name" content="X1ly?S Blog">
+<meta property="og:description" content="前言：第一次遇到这么奇葩的漏洞，故想记录一下，可惜后面没有危害提升成功，只是一个低危（但其实没有什么危害哈哈，只是很奇葩，打破了我”看上去就做得特别好的网站或者做网安的网站不存在漏洞”的天真认知，哈哈），要是能CSRF绝对高危。因为刚出这个漏洞，厂商还未修复，不得不厚码。但是不影响看思路（其实也没有啥思路可言），目标是一家有些名气的某网络安全培训机构的教学平台  漏洞URLhttps:&#x2F;&#x2F;xxx">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/loMYQZOHLnKNJuR.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/Ilb3d682utqTNOY.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/dCUQ2Neu9T7Xfmx.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/w4gtCvYEKMmFc2f.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/pCvUINeGyOtBqx3.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/xbvYRSN7qoMieA2.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/I9sg5TyqSaojBPF.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/mMFgXi4jsoTxpIh.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/qZeoc4SkLPWjJX1.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/MWHjfszOy62qhJX.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/1oeUIqdKLj4zGuC.png">
+<meta property="article:published_time" content="2024-06-10T09:20:27.000Z">
+<meta property="article:modified_time" content="2024-10-22T07:54:22.828Z">
+<meta property="article:author" content="X1ly?S">
+<meta property="article:tag" content="记一次奇葩漏洞">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://s2.loli.net/2024/10/22/loMYQZOHLnKNJuR.png">
+  
+  
+  
+  <title>某网络安全培训机构的教学平台修改密码处存在逻辑缺陷漏洞 - X1ly?S Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"x1lys.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="某网络安全培训机构的教学平台修改密码处存在逻辑缺陷漏洞"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-06-10 17:20" pubdate>
+          2024年6月10日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          733 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          7 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">某网络安全培训机构的教学平台修改密码处存在逻辑缺陷漏洞</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>前言：第一次遇到这么奇葩的漏洞，故想记录一下，可惜后面没有危害提升成功，只是一个低危（但其实没有什么危害哈哈，只是很奇葩，打破了我”看上去就做得特别好的网站或者做网安的网站不存在漏洞”的天真认知，哈哈），要是能CSRF绝对高危。因为刚出这个漏洞，厂商还未修复，不得不厚码。但是不影响看思路（其实也没有啥思路可言），目标是一家有些名气的某网络安全培训机构的教学平台</p>
+</blockquote>
+<h2 id="漏洞URL"><a href="#漏洞URL" class="headerlink" title="漏洞URL"></a>漏洞URL</h2><p><a target="_blank" rel="noopener" href="https://xxxx.yyyyyy.com/login">https://xxxx.yyyyyy.com/login</a> （你还真点了啊【狗头保命】）</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><ol>
+<li>登录一个测试账号</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/loMYQZOHLnKNJuR.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="2">
+<li>进入平台，来到 个人设置 –&gt; 修改密码处</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/Ilb3d682utqTNOY.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="3">
+<li>看到需要填写原始密码 新密码 确认密码三项（<strong>最初我怎么发现这里有问题的呢？就是我把这三项都填相同的任意字符串时，发现提示：修改密码成功，于是我就笃定这里的代码肯定写得有问题！</strong>）</li>
+</ol>
+<ul>
+<li>我当前正确的原始密码是：admin123，但是当我 “原始密码 新密码 确认密码”三项都填写：123456 时，返回了修改密码成功！！！</li>
+</ul>
+<p><img src="https://s2.loli.net/2024/10/22/dCUQ2Neu9T7Xfmx.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p><img src="https://s2.loli.net/2024/10/22/w4gtCvYEKMmFc2f.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="4">
+<li>于是尝试使用密码：123456 登录，验证密码是否修改成功。很不幸，修改失败，看来只是前端返回了修改成功的提示信息，后端数据库中并没有修改成功</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/pCvUINeGyOtBqx3.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="5">
+<li>但是我不相信这里不存在漏洞，也不愿意轻易”放过”它，于是在一番尝试之下，震惊地发现：修改密码时，<strong>原始密码填写除新密码之外的任意值，用户密码都会被成功修改为新密码</strong></li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/xbvYRSN7qoMieA2.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p><img src="https://s2.loli.net/2024/10/22/I9sg5TyqSaojBPF.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ul>
+<li><strong>提示：原密码不正确，但是你先别急，直接尝试使用：123456 登录 –&gt; 登录成功，成功在原密码错误的情况下，重置了密码</strong></li>
+</ul>
+<p><img src="https://s2.loli.net/2024/10/22/mMFgXi4jsoTxpIh.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p><img src="https://s2.loli.net/2024/10/22/qZeoc4SkLPWjJX1.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="6">
+<li><strong>到此已经证明漏洞存在，但是光是修改自己的密码，没有任何危害，于是又辛苦要到了一个另外的账号，想测试CSRF，打一套组合拳使得低危变高危</strong></li>
+<li>抓最后修改提交密码的数据包，发现使用PUT，json格式提交数据，使用json传参的话对同源策略限制很死，CSRF基本没戏，尝试强制修改传参方式为普通表单提交，正常响应，但是经测试发现受害者的密码还是没有被修改成功，猜测是后端只允许json格式提交数据，于是到这里就没戏了，因为有同源策略的限制，除非又在该站点的同源站点发现XSS，利用XSS执行CSRF的POC打出组合拳</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/MWHjfszOy62qhJX.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p><img src="https://s2.loli.net/2024/10/22/1oeUIqdKLj4zGuC.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<h2 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h2><p>正确校验原密码是否正确，修复该处逻辑缺陷</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%8C%96%E6%B4%9E%E8%AE%B0%E5%BD%95/" class="category-chain-item">挖洞记录</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%A5%87%E8%91%A9%E6%BC%8F%E6%B4%9E/" class="print-no-link">#记一次奇葩漏洞</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>某网络安全培训机构的教学平台修改密码处存在逻辑缺陷漏洞</div>
+      <div>https://x1lys.github.io/2024/06/10/某网络安全培训机构的教学平台修改密码处存在逻辑缺陷漏洞/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>X1ly?S</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年6月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/06/12/RDP-CVE-2019-0708%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" title="RDP_CVE-2019-0708漏洞复现">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RDP_CVE-2019-0708漏洞复现</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/06/06/%E5%A6%82%E4%BD%95%E5%AE%8C%E7%BE%8E%E5%90%B8%E6%94%B6%E4%B8%80%E7%AF%87%E6%BC%8F%E6%B4%9E%E6%8A%A5%E5%91%8A/" title="如何完美吸收一篇漏洞报告">
+                        <span class="hidden-mobile">如何完美吸收一篇漏洞报告</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

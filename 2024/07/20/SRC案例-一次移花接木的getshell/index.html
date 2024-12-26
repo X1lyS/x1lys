@@ -1,0 +1,723 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="X1ly?S">
+  <meta name="keywords" content="网络安全 渗透测试 web安全">
+  
+    <meta name="description" content="声明：本案例来自J0神，此处只是做学习研究之用  漏洞发现 是一个提供⾳乐播放业务的资产    F12简单看下⽬标信息环境   ServerSoft:IIS 7.5 CMS:JYMusic(ThinkPHP)     找到一处CSS资源⽂件，试了下文件解析漏洞，成功了：get一个IIS7.5的文件解析漏洞，那么现在只需要找到上传点+文件解析漏洞就能getshell 了    尝试了修改头像处，发">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SRC案例-一次移花接木的getshell">
+<meta property="og:url" content="https://x1lys.github.io/2024/07/20/SRC%E6%A1%88%E4%BE%8B-%E4%B8%80%E6%AC%A1%E7%A7%BB%E8%8A%B1%E6%8E%A5%E6%9C%A8%E7%9A%84getshell/index.html">
+<meta property="og:site_name" content="X1ly?S Blog">
+<meta property="og:description" content="声明：本案例来自J0神，此处只是做学习研究之用  漏洞发现 是一个提供⾳乐播放业务的资产    F12简单看下⽬标信息环境   ServerSoft:IIS 7.5 CMS:JYMusic(ThinkPHP)     找到一处CSS资源⽂件，试了下文件解析漏洞，成功了：get一个IIS7.5的文件解析漏洞，那么现在只需要找到上传点+文件解析漏洞就能getshell 了    尝试了修改头像处，发">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/9DtwKhO2LlgXnME.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/yAInr1qEoNZRFLi.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/Qwb5r2xtklTnYXf.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/5KCE7SYgHTMyAbJ.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/kfsKOyoDbWElVcT.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/O9R8wWUHDYxCnaM.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/3AsRDk8xPhdbQL6.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/4JSZApe7l1iuqK6.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/Xe51P6lQjyV473w.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/UIolu3hwB2rALmg.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/WSTx1mUBeyAFvh9.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/kOCRj1PxHlB5VUE.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/8CJx2LyKoQBarNS.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/1OStMricPNfhpKw.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/2YxBGs5q3JIE8RD.png">
+<meta property="article:published_time" content="2024-07-20T07:23:28.000Z">
+<meta property="article:modified_time" content="2024-10-22T06:17:41.886Z">
+<meta property="article:author" content="X1ly?S">
+<meta property="article:tag" content="一次移花接木的getshell">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://s2.loli.net/2024/10/22/9DtwKhO2LlgXnME.png">
+  
+  
+  
+  <title>SRC案例-一次移花接木的getshell - X1ly?S Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"x1lys.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SRC案例-一次移花接木的getshell"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-07-20 15:23" pubdate>
+          2024年7月20日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          588 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          5 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">SRC案例-一次移花接木的getshell</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>声明：本案例来自J0神，此处只是做学习研究之用</p>
+</blockquote>
+<h2 id="漏洞发现"><a href="#漏洞发现" class="headerlink" title="漏洞发现"></a>漏洞发现</h2><ol>
+<li>是一个提供⾳乐播放业务的资产</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/9DtwKhO2LlgXnME.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="2">
+<li>F12简单看下⽬标信息环境</li>
+</ol>
+<ul>
+<li><strong>ServerSoft:IIS 7.5 CMS:JYMusic(ThinkPHP)</strong></li>
+</ul>
+<p><img src="https://s2.loli.net/2024/10/22/yAInr1qEoNZRFLi.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p><img src="https://s2.loli.net/2024/10/22/Qwb5r2xtklTnYXf.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="3">
+<li>找到一处CSS资源⽂件，试了下文件解析漏洞，成功了：get一个IIS7.5的文件解析漏洞，那么现在只需要找到上传点+文件解析漏洞就能getshell 了</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/5KCE7SYgHTMyAbJ.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="4">
+<li>尝试了修改头像处，发现对上传的文件进行了二次渲染，上传⼀些⼆次渲染后仍能执⾏的Webshell后，依然发现⽆法正常getshell，遂放弃这一点</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/kfsKOyoDbWElVcT.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="5">
+<li>头像上传⾛不通那么只能另寻出路，来到分享⾳乐功能，但这里的功能用户自己上传文件修改成了⼈⼯邮箱审核，<strong>但是猜测上传接⼝还是存在的</strong>，于是根据目标CMS特征找到其他可以用户上传分享⾳乐(未改动)的网站，借用其接口，<strong>同一套CMS，二者接口肯定是一致的</strong></li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/O9R8wWUHDYxCnaM.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="6">
+<li>于是，通过fofa找到⼀个功能正常的站点，以下称为<a target="_blank" rel="noopener" href="http://www.bbb.com,这个站点的分享音乐功能是正常的/">www.bbb.com，这个站点的分享⾳乐功能是正常的</a></li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/3AsRDk8xPhdbQL6.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="7">
+<li>直接上传含有一句话木马的⾳乐⽂件</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/4JSZApe7l1iuqK6.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="8">
+<li>⽂件正常上传，但是没有返回上传路径，提交整个表单试试，提示没有分类数据</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/Xe51P6lQjyV473w.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="9">
+<li>没事直接前端加一个就行了，祭出神器F12给select标签加⼀个有value值的option。</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/UIolu3hwB2rALmg.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="10">
+<li>提示分享成功，查看审核列表也有了，编辑发现ID为23，⾸⻚随便点进去⼀个发现id为21。</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/WSTx1mUBeyAFvh9.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="11">
+<li>同时发现存在一个接⼝可以获取⾳乐上传路径，替换为ID&#x3D;23后取得路径</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/kOCRj1PxHlB5VUE.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p><img src="https://s2.loli.net/2024/10/22/8CJx2LyKoQBarNS.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="12">
+<li>这些是在<a target="_blank" rel="noopener" href="http://www.bbb.com的分享音乐功能操作,已知可上传含有木马的mp3,可利用接口获取上传路径,但是我们的目标是先前的网站,由于先前的网站无法显式地上传文件,我们才去同类网站找上传接口的,现已找到,于是只需把在www.bbb.com的分享音乐功能操作,在先前的网站再做一遍就行了.直接把www.bbb.com上传音乐文件的请求,移花接木到www.aaa.com上(burp改包host和cookie,提交时改fileid)/">www.bbb.com的分享音乐功能操作，已知可上传含有木马的mp3，可利用接口获取上传路径，但是我们的目标是先前的网站，由于先前的网站无法显式地上传文件，我们才去同类网站找上传接口的，现已找到，于是只需把在www.bbb.com的分享音乐功能操作，在先前的网站再做一遍就行了。直接把www.bbb.com上传⾳乐⽂件的请求，移花接⽊到www.aaa.com上（burp改包host和cookie，提交时改fileid）</a></li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/1OStMricPNfhpKw.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<ol start="13">
+<li>通过解析漏洞访问我们后缀名为MP3的webshell，成功getshell！</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/10/22/2YxBGs5q3JIE8RD.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/SRC%E6%8C%96%E6%8E%98%E6%A1%88%E4%BE%8B/" class="category-chain-item">SRC挖掘案例</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E4%B8%80%E6%AC%A1%E7%A7%BB%E8%8A%B1%E6%8E%A5%E6%9C%A8%E7%9A%84getshell/" class="print-no-link">#一次移花接木的getshell</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SRC案例-一次移花接木的getshell</div>
+      <div>https://x1lys.github.io/2024/07/20/SRC案例-一次移花接木的getshell/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>X1ly?S</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年7月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/07/21/%E6%B5%85%E8%B0%88CRLF%E6%B3%A8%E5%85%A5/" title="浅谈CRLF注入">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">浅谈CRLF注入</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/07/19/SRC%E6%A1%88%E4%BE%8B-%E7%94%A8%E7%BB%84%E5%90%88%E6%8B%B3%E5%9C%A8SRC%E5%AE%98%E7%BD%91%E7%9B%97%E8%B5%B0%E4%BD%A0%E7%9A%84%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF/" title="SRC案例-用组合拳在SRC官网盗走你的个人信息">
+                        <span class="hidden-mobile">SRC案例-用组合拳在SRC官网盗走你的个人信息</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

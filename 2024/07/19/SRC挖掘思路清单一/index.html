@@ -1,0 +1,738 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="X1ly?S">
+  <meta name="keywords" content="网络安全 渗透测试 web安全">
+  
+    <meta name="description" content="弱cookie导致的篡改 Cookie 实现任意用户伪造  前端检验关键数据(如：手机号)导致任意换绑从而任意用户密码重置  存储型XSS与换绑的验证码输出在前端的组合拳实现任意账户无感换绑  前端数据截图伪造与水平越权数据泄露的组合拳实现退款欺骗  OAuth缺陷导致CSRF任意用户换绑从而实现任意用户接管  四舍五入数据处理不当导致支付逻辑漏洞  四舍五入数据处理不当导致越权逻辑漏洞  并发">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SRC挖掘思路清单一">
+<meta property="og:url" content="https://x1lys.github.io/2024/07/19/SRC%E6%8C%96%E6%8E%98%E6%80%9D%E8%B7%AF%E6%B8%85%E5%8D%95%E4%B8%80/index.html">
+<meta property="og:site_name" content="X1ly?S Blog">
+<meta property="og:description" content="弱cookie导致的篡改 Cookie 实现任意用户伪造  前端检验关键数据(如：手机号)导致任意换绑从而任意用户密码重置  存储型XSS与换绑的验证码输出在前端的组合拳实现任意账户无感换绑  前端数据截图伪造与水平越权数据泄露的组合拳实现退款欺骗  OAuth缺陷导致CSRF任意用户换绑从而实现任意用户接管  四舍五入数据处理不当导致支付逻辑漏洞  四舍五入数据处理不当导致越权逻辑漏洞  并发">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-07-19T11:10:16.000Z">
+<meta property="article:modified_time" content="2024-07-19T11:11:26.445Z">
+<meta property="article:author" content="X1ly?S">
+<meta property="article:tag" content="SRC挖掘思路清单">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>SRC挖掘思路清单一 - X1ly?S Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"x1lys.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SRC挖掘思路清单一"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-07-19 19:10" pubdate>
+          2024年7月19日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          10 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">SRC挖掘思路清单一</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <ul>
+<li><p>弱cookie导致的篡改 Cookie 实现任意用户伪造</p>
+</li>
+<li><p>前端检验关键数据(如：手机号)导致任意换绑从而任意用户密码重置</p>
+</li>
+<li><p>存储型XSS与换绑的验证码输出在前端的组合拳实现任意账户无感换绑</p>
+</li>
+<li><p>前端数据截图伪造与水平越权数据泄露的组合拳实现退款欺骗</p>
+</li>
+<li><p>OAuth缺陷导致CSRF任意用户换绑从而实现任意用户接管</p>
+</li>
+<li><p>四舍五入数据处理不当导致支付逻辑漏洞</p>
+</li>
+<li><p>四舍五入数据处理不当导致越权逻辑漏洞</p>
+</li>
+<li><p>并发漏洞导致的各种重放攻击</p>
+</li>
+<li><p>前端校验数据伪造数据导致的各种问题</p>
+</li>
+<li><p>用户名枚举时还可使用fuzz模块生成二到三位的简单用户名</p>
+</li>
+<li><p>用户名枚举时还可使用使用TOP中文名汉字字典</p>
+</li>
+<li><p>Goole黑语法搜寻学号，默认密码</p>
+</li>
+<li><p>Github语法找CMS源码，项目源码，敏感信息</p>
+</li>
+<li><p>熟悉目标的整个业务流程，功能点很重要</p>
+</li>
+<li><p>前端泄露调试器全局搜索key、security、ak、sk、password、username、&#x2F;*、&#x2F;&#x2F;、默认</p>
+</li>
+<li><p>F12 XHR 截取异步流量(接口信息) 获取请求的API接口</p>
+</li>
+<li><p>参数遍历寻找隐藏商品、赠品、附属商品实现0元购</p>
+</li>
+<li><p>越权测试时不要嫌麻烦，注册两个账号测试</p>
+</li>
+<li><p>尝试购买售罄的商品</p>
+</li>
+<li><p>优惠劵多次复用</p>
+</li>
+<li><p>看响应包长度时，看最大、最小、临界值</p>
+</li>
+<li><p>找未授权接口时，若大多数是404说明可能接口有前缀，F12翻找js进行前缀拼接；如果接口跳转，开启bp拦截，再次看发送是否加载新的接口</p>
+</li>
+<li><p>找未授权接口时，405 改POST、GET、OPTIONS、PUT、HAED</p>
+</li>
+<li><p>找未授权接口时，5xx可能是参数缺失，F12前端去找参数或者FUZZ参数</p>
+</li>
+<li><p>找未授权接口时，Unsupportted Media Type 不支持内容类型，FUZZ媒体类型</p>
+<p>text&#x2F;html：HTML 文档<br>application&#x2F;json：JSON 数据<br>application&#x2F;xml：XML 数据<br>image&#x2F;jpeg：JPEG 图像<br>image&#x2F;png：PNG 图像<br>application&#x2F;pdf：PDF 文档<br>application&#x2F;octet-stream：二进制数据流<br>application&#x2F;x-www-form-urlencoded：用于表单数据的 URL 编码格式<br>multipart&#x2F;form-data：用于表单数据的多部分数据格式</p>
+</li>
+<li><p>找未授权接口时 403时，继续FUZZ 爆破次级目录，或者403 Bypass</p>
+</li>
+<li><p>爆破密码时有次数限制时，横向爆破用户名；爆破密码，达到错误阈值，再使用正确密码登录，看是否是虚假锁定</p>
+</li>
+<li><p>看前端是否对控制错误尝试的校验字段可控，从而绕过限制</p>
+</li>
+<li><p>校验过程与处理过程业务分离，导致通过一次校验后，得到处理过程，之后可跳过校验过程直接进行处理过程</p>
+</li>
+<li><p>验证码未绑定，只校验此时数据库中的该验证码是否有效，导致的任意用户登录</p>
+</li>
+<li><p>在代码层未考虑NULL的情况导致的验证码可删除从而绕过校验</p>
+</li>
+<li><p>仅仅只对输入校验过滤导致的二次注入、二次XSS</p>
+</li>
+<li><p>MySQL中insert into数据长度溢出时截断数据的特性导致的注册时的任意用户覆盖</p>
+</li>
+<li><p>没有流程凭证(session)，业务流程步骤未校验是否上一步骤是否完成，导致中间流程被跳过导致的未授权访问</p>
+</li>
+<li><p>流程凭证未绑定账号信息，导致的任意有效流程凭证可复用，从而实现任意用户密码重置</p>
+</li>
+<li><p>密保问题简单可猜解</p>
+</li>
+<li><p>密保问题答案泄露在前端</p>
+</li>
+<li><p>验证码4-5位可爆破</p>
+</li>
+<li><p>验证码回显在响应的set-cookie中</p>
+</li>
+<li><p>万能、默认验证码</p>
+</li>
+<li><p>未使用的token不过期，且不包含用户凭证信息，导致的任意用户越权操作</p>
+</li>
+<li><p>token可猜解，可预测，导致token伪造实现任意用户越权操作</p>
+</li>
+<li><p>邮箱密码重置链接中的凭证不包含账号信息或者叫凭证不会账号做校验，则可通过修改账号ID，实现任意用户密码重置</p>
+</li>
+<li><p>账号激活邮箱链接未加密且参数简单，无需登录他人邮箱就可以构造激活链接导致的任意用户注册</p>
+</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/SRC%E6%8C%96%E6%8E%98%E6%80%9D%E8%B7%AF%E6%B8%85%E5%8D%95/" class="category-chain-item">SRC挖掘思路清单</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/SRC%E6%8C%96%E6%8E%98%E6%80%9D%E8%B7%AF%E6%B8%85%E5%8D%95/" class="print-no-link">#SRC挖掘思路清单</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SRC挖掘思路清单一</div>
+      <div>https://x1lys.github.io/2024/07/19/SRC挖掘思路清单一/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>X1ly?S</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年7月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/07/19/SRC%E6%A1%88%E4%BE%8B-%E7%94%A8%E7%BB%84%E5%90%88%E6%8B%B3%E5%9C%A8SRC%E5%AE%98%E7%BD%91%E7%9B%97%E8%B5%B0%E4%BD%A0%E7%9A%84%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF/" title="SRC案例-用组合拳在SRC官网盗走你的个人信息">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">SRC案例-用组合拳在SRC官网盗走你的个人信息</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/07/17/Apache-ActiveMQ%E6%BC%8F%E6%B4%9E-%E4%B8%8A/" title="Apache_ActiveMQ漏洞-上">
+                        <span class="hidden-mobile">Apache_ActiveMQ漏洞-上</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

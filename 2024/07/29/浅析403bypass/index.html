@@ -1,0 +1,739 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="X1ly?S">
+  <meta name="keywords" content="网络安全 渗透测试 web安全">
+  
+    <meta name="description" content="前言：本文简单的总结一下一些403bypass的绕过姿势  403的成因 某些敏感的URL路径配置为不允许访问 网络安全设备（如入侵检测系统或防火墙）可能会基于请求的特征或内容进行拦截，从而导致 403 错误 服务器配置成了只允许工作区的公网出口地址访问 服务器配置成了只允许某些特定的UA访问 服务器配置成了只允许某些特定的来源访问 因为在进行某些攻击活动，被检测到了，IP被ban  短时间内同">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅析403bypass">
+<meta property="og:url" content="https://x1lys.github.io/2024/07/29/%E6%B5%85%E6%9E%90403bypass/index.html">
+<meta property="og:site_name" content="X1ly?S Blog">
+<meta property="og:description" content="前言：本文简单的总结一下一些403bypass的绕过姿势  403的成因 某些敏感的URL路径配置为不允许访问 网络安全设备（如入侵检测系统或防火墙）可能会基于请求的特征或内容进行拦截，从而导致 403 错误 服务器配置成了只允许工作区的公网出口地址访问 服务器配置成了只允许某些特定的UA访问 服务器配置成了只允许某些特定的来源访问 因为在进行某些攻击活动，被检测到了，IP被ban  短时间内同">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/eQ8OnNZlzXc5fSx.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/PE9o2ycz1g47jHh.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/5BqJ8RF47IhWKY9.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/imFeBrzqZEJQf1S.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/5GMULm2PYSqZWsz.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/yaxJb9olpZjOcrQ.png">
+<meta property="og:image" content="https://s2.loli.net/2024/10/22/z7HvLhRe3qJoY5G.png">
+<meta property="article:published_time" content="2024-07-29T10:12:32.000Z">
+<meta property="article:modified_time" content="2024-10-22T07:59:18.906Z">
+<meta property="article:author" content="X1ly?S">
+<meta property="article:tag" content="403bypass">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://s2.loli.net/2024/10/22/eQ8OnNZlzXc5fSx.png">
+  
+  
+  
+  <title>浅析403bypass - X1ly?S Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"x1lys.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="浅析403bypass"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-07-29 18:12" pubdate>
+          2024年7月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          12 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">浅析403bypass</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>前言：本文简单的总结一下一些403bypass的绕过姿势</p>
+</blockquote>
+<h2 id="403的成因"><a href="#403的成因" class="headerlink" title="403的成因"></a>403的成因</h2><ol>
+<li>某些敏感的URL路径配置为不允许访问</li>
+<li>网络安全设备（如入侵检测系统或防火墙）可能会基于请求的特征或内容进行拦截，从而导致 403 错误</li>
+<li>服务器配置成了只允许工作区的公网出口地址访问</li>
+<li>服务器配置成了只允许某些特定的UA访问</li>
+<li>服务器配置成了只允许某些特定的来源访问</li>
+<li>因为在进行某些攻击活动，被检测到了，IP被ban </li>
+<li>短时间内同一个IP过多地访问，被墙了</li>
+<li>以HTTP协议访问需要HTTPS的站点</li>
+<li>虽然域名的 DNS 解析记录已经设置了正确的 IP 地址，但是服务器在该 IP 地址上没有针对该域名的配置或绑定</li>
+<li>服务器配置为了不允许使用IP地址访问，只能使用域名</li>
+<li>上传的网页脚本文件在当前目录下没有执行权限</li>
+<li>在不允许写&#x2F;创建文件的目录中执行了创建&#x2F;写文件操作</li>
+<li>如果服务器对跨源请求进行了限制，而请求没有适当的 CORS 头部，可能会导致访问被拒绝</li>
+<li>DNS解析错误，手动更改DNS服务器地址 </li>
+<li>浏览器不支持SSL 128时访问SSL 128的连接</li>
+</ol>
+<h2 id="403绕过姿势"><a href="#403绕过姿势" class="headerlink" title="403绕过姿势"></a>403绕过姿势</h2><h3 id="请求方式绕过"><a href="#请求方式绕过" class="headerlink" title="请求方式绕过"></a>请求方式绕过</h3><p>有些时候由于后端代码的疏忽，仅仅只对GET&#x2F;POST请求做了访问控制，可以尝试FUZZ请求方式，试试看能不能绕过</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs http">GET<br>POST<br>PUT<br>DELETE<br>HEAD<br>OPTIONS<br>PATCH<br>CONNECT<br>TRACE<br></code></pre></td></tr></table></figure>
+
+<h3 id="UA绕过"><a href="#UA绕过" class="headerlink" title="UA绕过"></a>UA绕过</h3><p>有的应用为了区分爬虫或者正常请求，会验证user-agent，伪造一个正常浏览器的UA头就可以绕过了</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs http">Chrome<br>User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36<br>火狐<br>User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/113.0<br></code></pre></td></tr></table></figure>
+
+<h3 id="客户端IP绕过"><a href="#客户端IP绕过" class="headerlink" title="客户端IP绕过"></a>客户端IP绕过</h3><p>如果服务器基于客户端IP做检测与访问控制，那么我们完全可以伪造客户端IP来绕过</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-attribute">X-Originating-IP</span><span class="hljs-punctuation">: </span>127.0.0.1<br><span class="hljs-attribute">X-Remote-IP</span><span class="hljs-punctuation">: </span>127.0.0.1<br><span class="hljs-attribute">X-Client-IP</span><span class="hljs-punctuation">: </span>127.0.0.1<br><span class="hljs-attribute">X-Forwarded-For</span><span class="hljs-punctuation">: </span>127.0.0.1<br><span class="hljs-attribute">X-Forwared-Host</span><span class="hljs-punctuation">: </span>127.0.0.1<br><span class="hljs-attribute">X-Host</span><span class="hljs-punctuation">: </span>127.0.0.1<br><span class="hljs-attribute">X-Custom-IP-Authorization</span><span class="hljs-punctuation">: </span>127.0.0.1<br></code></pre></td></tr></table></figure>
+
+<h3 id="Referer绕过"><a href="#Referer绕过" class="headerlink" title="Referer绕过"></a>Referer绕过</h3><p>有时网站限制了访问来源，如果访问来源不符合，则也会返回403</p>
+<p>设置referer为访问网站的host就行</p>
+<h3 id="url覆盖绕过"><a href="#url覆盖绕过" class="headerlink" title="url覆盖绕过"></a>url覆盖绕过</h3><h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><ul>
+<li>**<code>X-Original-URL</code>**：记录请求的原始 URL。通常由代理服务器添加。</li>
+<li>**<code>X-Rewrite-URL</code>**：记录实际请求的 URL，通常用于重写请求路径。</li>
+</ul>
+<h4 id="绕过-403-错误的原理"><a href="#绕过-403-错误的原理" class="headerlink" title="绕过 403 错误的原理"></a>绕过 403 错误的原理</h4><ol>
+<li><strong>原始 URL 的访问控制</strong>：<ul>
+<li>服务器可以基于原始请求 URL 的路径（<code>X-Original-URL</code>）来进行访问控制。</li>
+<li>如果路径被配置为受限（如 <code>/admin</code>），某些用户可能会被禁止访问。</li>
+</ul>
+</li>
+<li><strong>请求路径重写</strong>：<ul>
+<li>当请求经过代理或负载均衡器时，实际的请求 URL 可能会被重写。例如，将请求路径从 <code>/user</code> 重写为 <code>/admin</code>。</li>
+<li>代理或负载均衡器可能会保留原始 URL（通过 <code>X-Original-URL</code>）以供后续处理。</li>
+</ul>
+</li>
+<li><strong>利用标头绕过限制</strong>：<ul>
+<li>如果服务器在处理请求时检查 <code>X-Original-URL</code> 标头，而不是实际的请求路径，那么攻击者可以伪造 <code>X-Original-URL</code> 标头来尝试访问受限资源。</li>
+<li><strong>例如</strong>：假设 <code>/admin</code> 路径受限，只允许某些用户访问。攻击者可以发起请求并伪造 <code>X-Original-URL</code> 为 <code>/admin</code>，从而绕过限制。</li>
+</ul>
+</li>
+</ol>
+<h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><ol>
+<li><strong>正常访问控制</strong>：<ul>
+<li>用户访问 <code>/public</code>，代理重写为 <code>/admin</code>。</li>
+<li>服务器检查 <code>X-Original-URL</code> 为 <code>/admin</code>，由于访问控制限制，返回 403 错误。</li>
+</ul>
+</li>
+<li><strong>绕过访问控制</strong>：<ul>
+<li>攻击者伪造 <code>X-Original-URL</code> 为 <code>/admin</code>，发送请求。</li>
+<li>如果服务器在验证访问权限时只依赖 <code>X-Original-URL</code>，而不是实际的请求路径，攻击者可能会绕过访问控制并访问 <code>/admin</code>，从而得到未授权的访问。</li>
+</ul>
+</li>
+</ol>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-keyword">GET</span> <span class="hljs-string">/</span> <span class="hljs-meta">HTTP/1.1</span><br><span class="hljs-attribute">X-Original-URL</span><span class="hljs-punctuation">: </span>/admin<br><span class="hljs-attribute">X-Rewrite-URL</span><span class="hljs-punctuation">: </span>/admin<br><span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>www.abc.com<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2024/10/22/eQ8OnNZlzXc5fSx.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>在Header头中添加X-Original-URL标头，发现已经有权限可以删除Administrator、carlos、wiener 帐号的管理员权限</p>
+<p><img src="https://s2.loli.net/2024/10/22/PE9o2ycz1g47jHh.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<h3 id="扩展名绕过"><a href="#扩展名绕过" class="headerlink" title="扩展名绕过"></a>扩展名绕过</h3><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs http">site.com/admin =&gt; 403<br><br>site.com/admin/ =&gt; 200<br><br>site.com/admin// =&gt; 200<br><br>site.com//admin// =&gt; 200<br><br>site.com/admin/* =&gt; 200<br><br>site.com/admin/*/ =&gt; 200<br><br>site.com/admin/. =&gt; 200<br><br>site.com/admin/./ =&gt; 200<br><br>site.com/./admin/./ =&gt; 200<br><br>site.com/admin/./. =&gt; 200<br><br>site.com/admin/./. =&gt; 200<br><br>site.com/admin? =&gt; 200<br><br>site.com/admin?? =&gt; 200<br><br>site.com/admin??? =&gt; 200<br><br>site.com/admin…;/ =&gt; 200<br><br>site.com/admin/…;/ =&gt; 200<br><br>site.com/%2f/admin =&gt; 200<br><br>site.com/%2e/admin =&gt; 200<br><br>site.com/admin%20/ =&gt; 200<br><br>site.com/admin%09/ =&gt; 200<br><br>site.com/%20admin%20/ =&gt; 200<br></code></pre></td></tr></table></figure>
+
+<h2 id="绕过案例"><a href="#绕过案例" class="headerlink" title="绕过案例"></a>绕过案例</h2><p>某个后台地址 <a target="_blank" rel="noopener" href="http://www.login.com/">http://www.login.com</a> 只允许工作区的公网出口IP访问，在局域网中，甲方让测试看能不能在外网访问到目标IP </p>
+<h3 id="端口绕过"><a href="#端口绕过" class="headerlink" title="端口绕过"></a>端口绕过</h3><p>外网进行访问返回403状态码。利用nmap进行全端口探测，发现除了80端口之外，还开放了一个web服务的8001端口，尝试使用8001端口访问(<a href="https://www.login.com:8001)，总是充满惊喜。可直接绕过IP限制进行访问">https://www.login.com:8001)，总是充满惊喜。可直接绕过IP限制进行访问</a></p>
+<p><img src="https://s2.loli.net/2024/10/22/5BqJ8RF47IhWKY9.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>通过沟通，由于疏忽未下线8001端口，导致访问控制缺失，这就是用到了信息收集而已</p>
+<h3 id="子域名绕过"><a href="#子域名绕过" class="headerlink" title="子域名绕过"></a>子域名绕过</h3><p>外网进行访问返回403状态码</p>
+<p>先爆破出一些子域名，再把子域名放在host中去访问</p>
+<p><img src="https://s2.loli.net/2024/10/22/imFeBrzqZEJQf1S.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p><img src="https://s2.loli.net/2024/10/22/5GMULm2PYSqZWsz.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>往往成功也离不开运气，看到一个服务端返回200的状态码。成功找到一个在HOST白名单中的子域名，这个子域名没有做好访问控制，这也属于信息收集</p>
+<h2 id="工具推荐"><a href="#工具推荐" class="headerlink" title="工具推荐"></a>工具推荐</h2><p><a target="_blank" rel="noopener" href="https://github.com/sting8k/BurpSuite_403Bypasser">https://github.com/sting8k/BurpSuite_403Bypasser</a></p>
+<p><img src="https://s2.loli.net/2024/10/22/yaxJb9olpZjOcrQ.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>burp插件商店有，需要配置Jython环境</p>
+<p><img src="https://s2.loli.net/2024/10/22/z7HvLhRe3qJoY5G.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/WEB%E6%94%BB%E9%98%B2/" class="category-chain-item">WEB攻防</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/403bypass/" class="print-no-link">#403bypass</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>浅析403bypass</div>
+      <div>https://x1lys.github.io/2024/07/29/浅析403bypass/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>X1ly?S</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年7月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/07/30/%E9%80%9A%E8%BF%87JS%E6%96%87%E4%BB%B6%E8%BF%9B%E8%A1%8CAPI%E6%8E%A5%E5%8F%A3%E6%9C%AA%E6%8E%88%E6%9D%83%E6%89%8B%E5%B7%A5%E6%B5%8B%E8%AF%95%E4%B8%8A/" title="通过JS文件进行API接口未授权手工测试上">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">通过JS文件进行API接口未授权手工测试上</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/07/27/Ueditor-1-4-3-3-NET%E7%89%88%E6%9C%AC%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8/" title="Ueditor_1.4.3.3_.NET版本文件上传漏洞利用">
+                        <span class="hidden-mobile">Ueditor_1.4.3.3_.NET版本文件上传漏洞利用</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
