@@ -4551,7 +4551,7 @@ figure.highlight pre .javascript .function {
   padding-right: 4px;
 }
 #waline-wrap textarea {
-  background: url("/img/1.png") 100% 100% no-repeat;
+  background: url("/img/2.png") 100% 100% no-repeat;
 }
 #waline-wrap textarea:focus {
   background-image: none;
